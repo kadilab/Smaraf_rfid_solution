@@ -1,0 +1,401 @@
+[
+    {
+        "id": "bc16c90a1bdc4a1f",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "82f1070c0b174a8e",
+        "type": "serial in",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "SERIALPORT",
+        "serial": "b89a88d52b4ed81a",
+        "x": 210,
+        "y": 140,
+        "wires": [
+            [
+                "608c947fc6d1ad78"
+            ]
+        ]
+    },
+    {
+        "id": "608c947fc6d1ad78",
+        "type": "buffer-parser",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "",
+        "data": "payload",
+        "dataType": "msg",
+        "specification": "spec",
+        "specificationType": "ui",
+        "items": [
+            {
+                "type": "hex",
+                "name": "epc",
+                "offset": 4,
+                "length": 24,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            }
+        ],
+        "swap1": "",
+        "swap2": "",
+        "swap3": "",
+        "swap1Type": "swap",
+        "swap2Type": "swap",
+        "swap3Type": "swap",
+        "msgProperty": "payload",
+        "msgPropertyType": "str",
+        "resultType": "value",
+        "resultTypeType": "return",
+        "multipleResult": true,
+        "fanOutMultipleResult": false,
+        "setTopic": false,
+        "outputs": 1,
+        "x": 370,
+        "y": 140,
+        "wires": [
+            [
+                "25518285cea980ca",
+                "25c19074326ec888"
+            ]
+        ]
+    },
+    {
+        "id": "25518285cea980ca",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "addData",
+        "func": "if (msg.payload.length >= 24) {\n    const input = msg.payload;\n    const output = input.substring(0, 24)\n\n    msg.payload = output.toUpperCase();\n\n    // Vérifie si la première lettre de l'output est différente de 'E'\n    if (msg.payload[0] !== 'E') {\n        return ; // Ignore le message si la première lettre est différente de 'E'\n    }\n\n    var existingCards = flow.get(\"cards\") || []; // Récupère le tableau de cartes existant du contexte global\n    var newCard = msg.payload; // Récupère les données de la carte RFID\n\n    // Vérifie si la carte existe déjà dans le tableau\n    var cardExists = existingCards.some(function (card) {\n        return card === newCard;\n    });\n\n    if (!cardExists) {\n        existingCards.push(newCard.toUpperCase()); // Ajoute la carte au tableau\n        // http://localhost/gsad/?epc=1236&ant=2\n        msg.url = \"https://gsad.uzacart.shop/api/?ant=2&epc=\" + newCard;\n        msg.epc = newCard;\n        context.set(\"cards\", existingCards); // Enregistre le tableau mis à jour dans le contexte global\n        msg.payload = flow.get(\"cards\")\n        return msg; // Passe le message au nœud suivant\n    } else {\n        return null; // Ignore le message s'il y a un doublon de carte\n    }\n}\nelse {\n    return\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 140,
+        "wires": [
+            [
+                "41eb8c8e8923b651"
+            ]
+        ]
+    },
+    {
+        "id": "f702d5b46a0ab045",
+        "type": "debug",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1920,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "4a23fd60ca838b86",
+        "type": "inject",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 210,
+        "y": 80,
+        "wires": [
+            [
+                "effcea991a14f622"
+            ]
+        ]
+    },
+    {
+        "id": "effcea991a14f622",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "init",
+        "func": "flow.set('cards',[]);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f63e632b15bb4eef",
+        "type": "comment",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "",
+        "info": "http://gsad.uzacart.shop/?epc=1236&ant=2",
+        "x": 260,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "41eb8c8e8923b651",
+        "type": "http request",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "persist": false,
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 710,
+        "y": 140,
+        "wires": [
+            [
+                "b2c6af105f54e0db",
+                "10b42a33c5bb57dc"
+            ]
+        ]
+    },
+    {
+        "id": "b2c6af105f54e0db",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "error request",
+        "func": "if (msg.statusCode === \"ENOTFOUND\"){\n    return msg;\n}else{\n    return;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 140,
+        "wires": [
+            [
+                "faa7082b.8a1818"
+            ]
+        ]
+    },
+    {
+        "id": "b7f23ad840ebf0e3",
+        "type": "mysql",
+        "z": "bc16c90a1bdc4a1f",
+        "mydb": "56b166f0b8e07d00",
+        "name": "",
+        "x": 1350,
+        "y": 140,
+        "wires": [
+            [
+                "bc156429.1a9a7"
+            ]
+        ]
+    },
+    {
+        "id": "faa7082b.8a1818",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "Traiter les données RFID",
+        "func": "var epc = msg.epc;\n\nvar date = new Date().toISOString().slice(0, 10);\n\n// Vérifier si l'EPC pour cette date existe déjà dans la base de données\nvar check_sql = \"SELECT * FROM rfid_data_table WHERE epc = '\" + epc + \"' AND date_read = '\" + date + \"'\";\n\nmsg.topic = check_sql;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1150,
+        "y": 140,
+        "wires": [
+            [
+                "b7f23ad840ebf0e3"
+            ]
+        ]
+    },
+    {
+        "id": "bc156429.1a9a7",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "Vérifier le résultat",
+        "func": "if (msg.payload.length > 0) {\n    msg.payload = \"Cet EPC a déjà été enregistré aujourd'hui.\";\n} else {\n    msg.topic = \"INSERT INTO `rfid_data_table` (`id`, `epc`, `date_read`, `antenne`, `state`) VALUES (NULL, '\" + msg.epc + \"', current_timestamp(), '1', '1');\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1550,
+        "y": 140,
+        "wires": [
+            [
+                "793b8f30adb8c536"
+            ]
+        ]
+    },
+    {
+        "id": "793b8f30adb8c536",
+        "type": "mysql",
+        "z": "bc16c90a1bdc4a1f",
+        "mydb": "66f1aa4b.f57e7c",
+        "name": "",
+        "x": 1760,
+        "y": 140,
+        "wires": [
+            [
+                "f702d5b46a0ab045"
+            ]
+        ]
+    },
+    {
+        "id": "90ab5fcd2320c95a",
+        "type": "mysql",
+        "z": "bc16c90a1bdc4a1f",
+        "mydb": "66f1aa4b.f57e7c",
+        "name": "",
+        "x": 1100,
+        "y": 220,
+        "wires": [
+            [
+                "25e6cdebdce75d1c"
+            ]
+        ]
+    },
+    {
+        "id": "10b42a33c5bb57dc",
+        "type": "function",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "backup",
+        "func": "if (msg.statusCode === \"ENOTFOUND\") {\n    return;\n} else {\n    msg.topic = \"INSERT INTO `rfid_data_table` (`id`, `epc`, `date_read`, `antenne`, `state`) VALUES (NULL, '\" + msg.epc + \"', current_timestamp(), '1', '0');\";\n\n    return msg;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 220,
+        "wires": [
+            [
+                "90ab5fcd2320c95a"
+            ]
+        ]
+    },
+    {
+        "id": "25e6cdebdce75d1c",
+        "type": "debug",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1340,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "77f97f800ae15db4",
+        "type": "inject",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Eascv6688990022hjuu445hih77guguuinmn",
+        "payloadType": "str",
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "25518285cea980ca"
+            ]
+        ]
+    },
+    {
+        "id": "25c19074326ec888",
+        "type": "debug",
+        "z": "bc16c90a1bdc4a1f",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "b89a88d52b4ed81a",
+        "type": "serial-port",
+        "z": "bc16c90a1bdc4a1f",
+        "serialport": "COM4",
+        "serialbaud": "57600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "high",
+        "cts": "low",
+        "dsr": "none",
+        "newline": "0",
+        "bin": "bin",
+        "out": "time",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "56b166f0b8e07d00",
+        "type": "MySQLdatabase",
+        "name": "",
+        "host": "localhost",
+        "port": "3306",
+        "db": "gsad",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "66f1aa4b.f57e7c",
+        "type": "MySQLdatabase",
+        "name": "MySQL",
+        "host": "localhost",
+        "port": "3306",
+        "db": "gsad",
+        "tz": "",
+        "charset": ""
+    }
+]
